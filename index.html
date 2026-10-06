@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz · Creative Commons y método CRAAP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0c121c; --panel:#141d2b; --panel-2:#1a2536; --panel-3:#202d42;
+    --paper:#f2ede1; --amber:#e3a23c; --amber-dim:#8a6a34;
+    --teal:#5fd3c4; --teal-dim:#3a7d74;
+    --ok:#7fd28a; --bad:#e37b7b; --warn:#e3d23c;
+    --text:#eceef2; --text-dim:#98a2b8;
+    --line:rgba(255,255,255,0.10); --line-strong:rgba(255,255,255,0.22);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--ink);
+    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:44px 44px; color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif; margin:0; font-weight:600; letter-spacing:-0.01em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  :focus-visible{outline:2px solid var(--teal); outline-offset:3px;}
+  input[type="text"], select{background:var(--panel-3); border:1px solid var(--line-strong); color:var(--text); font-family:'Inter',sans-serif; font-size:14px; padding:10px 12px; border-radius:2px; width:100%;}
+  input[type="text"]:focus, select:focus{border-color:var(--teal);}
+  button{font-family:'JetBrains Mono',monospace; cursor:pointer;}
+
+  .topbar{position:sticky; top:0; z-index:50; background:rgba(12,18,28,0.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  .topbar-inner{max-width:900px; margin:0 auto; padding:12px 22px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--amber); box-shadow:0 0 8px var(--amber);}
+  .top-right{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .score{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim);}
+  .score b{color:var(--teal);}
+  .btn-reset{background:transparent; border:1px solid var(--line-strong); color:var(--text-dim); font-size:11px; padding:8px 12px;}
+  .btn-reset:hover{border-color:var(--bad); color:var(--bad);}
+
+  .hero{max-width:900px; margin:0 auto; padding:34px 22px 10px;}
+  .hero .tag{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line-strong); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; color:var(--teal); text-transform:uppercase; margin-bottom:16px;}
+  .hero h1{font-size:clamp(1.6rem,3.6vw,2.3rem); color:var(--paper); line-height:1.1;}
+  .hero h1 span{color:var(--amber);}
+  .hero p{font-size:13.5px; color:var(--text-dim); margin-top:12px; max-width:640px; line-height:1.6;}
+  .progressbar{max-width:900px; margin:16px auto 0; padding:0 22px; display:flex; gap:6px;}
+  .pstep{flex:1; height:6px; background:var(--panel-3); border:1px solid var(--line);}
+  .pstep.done{background:var(--teal); border-color:var(--teal);}
+  .ident{max-width:900px; margin:16px auto 0; padding:0 22px; display:flex; gap:12px; flex-wrap:wrap;}
+  .ident .f{flex:1; min-width:150px;}
+  .ident label{display:block; font-size:10.5px; color:var(--text-dim); margin-bottom:5px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.06em;}
+
+  main{max-width:900px; margin:0 auto; padding:24px 22px 90px;}
+  .part{border:1px solid var(--line-strong); background:var(--panel); margin-bottom:22px;}
+  .part-head{padding:15px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:14px;}
+  .part-head .pn{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;}
+  .part-head .pn.cc{color:var(--amber);} .part-head .pn.craap{color:var(--teal);}
+  .part-head h2{font-size:17px; color:var(--paper); margin-top:2px;}
+  .part-head .badge{margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); border:1px solid var(--line); padding:4px 9px;}
+  .part-head .badge.solved{color:var(--ok); border-color:var(--teal-dim);}
+  .part-body{padding:20px;}
+  .intro{font-size:13px; color:var(--text-dim); line-height:1.6; margin:0 0 16px;}
+  .intro code{font-family:'JetBrains Mono',monospace; color:var(--teal); background:var(--ink); padding:1px 6px; border:1px solid var(--line); border-radius:2px;}
+
+  .row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px dashed var(--line); flex-wrap:wrap;}
+  .row:last-of-type{border-bottom:none;}
+  .row .sym{font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--amber); min-width:140px; font-weight:600;}
+  .row .sym.t{color:var(--teal);}
+  .row select{width:auto; min-width:230px; flex:1;}
+  .res{font-size:11px; font-family:'JetBrains Mono',monospace; min-width:62px; text-align:right;}
+  .res.ok{color:var(--ok);} .res.no{color:var(--bad);} .res.pending{color:var(--text-dim);}
+
+  .quiz{border:1px solid var(--line-strong); padding:14px 16px; margin-bottom:12px; background:var(--panel-2);}
+  .quiz:last-child{margin-bottom:0;}
+  .quiz .scn{font-size:13.5px; color:var(--text); line-height:1.55; margin-bottom:12px;}
+  .quiz .scn b{color:var(--paper);} .quiz .scn .mono{color:var(--amber);}
+  .quiz-actions{display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;}
+  .qbtn{flex:1; min-width:120px; background:transparent; border:1px solid var(--line-strong); color:var(--paper); font-size:12.5px; padding:10px; transition:all .15s;}
+  .qbtn.wide{flex:none; width:100%; text-align:left;}
+  .qbtn:hover:not(:disabled){border-color:var(--teal);}
+  .qbtn:disabled{cursor:default;}
+  .qbtn.correct{background:rgba(127,210,138,0.15); border-color:var(--ok); color:var(--ok);}
+  .qbtn.incorrect{background:rgba(227,123,123,0.15); border-color:var(--bad); color:var(--bad);}
+  .fb{font-size:12.5px; color:var(--text-dim); line-height:1.5; padding-top:10px; border-top:1px solid var(--line); display:none;}
+  .fb.show{display:block;} .fb b{color:var(--paper);}
+
+  .ic-row{display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px dashed var(--line); flex-wrap:wrap;}
+  .ic-row:last-of-type{border-bottom:none;}
+  .ic-badges{display:flex; gap:6px; flex:none;}
+  .cc-badge{width:42px; height:42px; flex:none;}
+  .ic-row select{min-width:210px; flex:1;}
+
+  .tasl-card{border-left:2px solid var(--amber); background:var(--panel-2); padding:14px 16px; margin-bottom:16px; font-size:13px; line-height:1.7;}
+  .tasl-card .lbl{font-family:'JetBrains Mono',monospace; color:var(--amber); font-size:11px; text-transform:uppercase; letter-spacing:.05em;}
+  .tasl-card b{color:var(--paper);}
+  .formula{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--teal); background:var(--ink); border:1px solid var(--line-strong); padding:10px 12px; margin:10px 0 0; display:block;}
+  .data-card{border-left:2px solid var(--teal); background:var(--panel-2); padding:12px 15px; margin-bottom:12px; font-size:12.5px; line-height:1.7;}
+  .data-card b{color:var(--paper);}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px;}
+  .check-btn{background:var(--teal); color:var(--ink); border:none; font-size:12.5px; font-weight:600; padding:11px 18px; margin-top:4px;}
+  .check-btn:hover{background:#74ddce;}
+  .subfb{margin-top:10px; padding:10px 12px; background:var(--panel-3); border:1px solid var(--line); font-size:12px; line-height:1.55; display:none;}
+  .subfb.show{display:block;}
+  .subfb .hit{color:var(--ok);} .subfb .miss{color:var(--bad);}
+  .subfb .model{margin-top:6px; padding-top:6px; border-top:1px solid var(--line); color:var(--text);}
+  .subfb .model b{color:var(--teal);}
+
+  .final{border:1px solid var(--teal-dim); background:rgba(95,211,196,0.06); padding:22px 20px; text-align:center; display:none;}
+  .final.show{display:block;}
+  .final h3{color:var(--teal); font-size:20px; margin-bottom:6px;}
+  .final .grade{font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700; color:var(--teal); margin:14px 0 4px; padding:12px; border:1px solid var(--teal-dim); background:rgba(95,211,196,0.08);}
+  .final .grade span{color:var(--text-dim); font-size:14px; font-weight:400;}
+  .final .big{font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--amber); margin:8px 0;}
+  .final p{font-size:14px; color:var(--text); margin:0;}
+  .final .rank{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--teal); margin-top:8px;}
+  .final-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px;}
+  .btn-ghost{background:transparent; border:1px solid var(--line-strong); color:var(--text); font-size:12.5px; font-weight:600; padding:11px 18px;}
+  .btn-ghost:hover{border-color:var(--teal); color:var(--teal);}
+  .send-fb{font-family:'JetBrains Mono',monospace; font-size:12px; margin-top:12px; display:none;}
+  .send-fb.show{display:block;} .send-fb.ok{color:var(--ok);} .send-fb.no{color:var(--bad);}
+
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--panel-3); border:1px solid var(--teal); color:var(--paper); font-size:13px; padding:12px 20px; z-index:60; opacity:0; transition:all .25s; pointer-events:none;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  #resetModal{position:fixed; inset:0; background:rgba(6,10,16,0.82); z-index:80; display:none; align-items:center; justify-content:center; padding:20px;}
+  #resetModal.show{display:flex;}
+  .modal-card{background:var(--panel); border:1px solid var(--line-strong); max-width:440px; width:100%; padding:24px;}
+  .modal-card h3{font-size:18px; color:var(--paper); margin-bottom:10px;}
+  .modal-card p{font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:0 0 18px;}
+  .modal-actions{display:flex; gap:10px; justify-content:flex-end;}
+  .modal-actions button{font-size:12px; padding:10px 16px; border:1px solid var(--line-strong); background:transparent; color:var(--text);}
+  .modal-actions .danger:hover{border-color:var(--bad); color:var(--bad);}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+  @media(max-width:560px){ .row select{min-width:100%;} .ic-row select{min-width:100%;} }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="dot"></span>QUIZ · CC + CRAAP</div>
+    <div class="top-right">
+      <span class="score">Puntos: <b id="scoreText">0</b>/<span id="scoreTotal">0</span></span>
+      <button class="btn-reset" id="btnReset">↺ Reiniciar</button>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="tag">◆ Quiz · 7 retos · calificación final</div>
+  <h1>Quiz: Creative Commons <span>y método CRAAP</span></h1>
+  <p>Este quiz repasa dos herramientas clave: las licencias <b>Creative Commons</b> (para usar contenido de forma legal) y el método <b>CRAAP</b> (para evaluar si una fuente es confiable). Responde los 7 retos y al final verás tu calificación. Tus respuestas se guardan solas en esta computadora.</p>
+</header>
+<div class="progressbar" id="progressbar"></div>
+<div class="ident">
+  <div class="f"><label>Apellido(s)</label><input type="text" id="idApellido" placeholder="Ej. Torres García"></div>
+  <div class="f"><label>Nombre(s)</label><input type="text" id="idNombre" placeholder="Ej. Ana"></div>
+  <div class="f"><label>Grupo</label><input type="text" id="idGrupo" placeholder="Ej. 1A"></div>
+</div>
+
+<main>
+
+  <!-- R1 CRAAP match -->
+  <section class="part">
+    <div class="part-head"><div><div class="pn craap">Reto 1 · CRAAP</div><h2>¿Qué evalúa cada letra de CRAAP?</h2></div><span class="badge" id="b1">0 pts</span></div>
+    <div class="part-body">
+      <p class="intro">El método <code>CRAAP</code> sirve para decidir si una fuente es confiable. Relaciona cada criterio con la pregunta que ayuda a responder.</p>
+      <div id="m1"></div>
+      <button class="check-btn" data-check="1">Revisar reto 1</button>
+    </div>
+  </section>
+
+  <!-- R2 CC symbols match -->
+  <section class="part">
+    <div class="part-head"><div><div class="pn cc">Reto 2 · Creative Commons</div><h2>El significado de cada símbolo</h2></div><span class="badge" id="b2">0 pts</span></div>
+    <div class="part-body">
+      <p class="intro">Relaciona cada símbolo o licencia de Creative Commons con lo que significa.</p>
+      <div id="m2"></div>
+      <button class="check-btn" data-check="2">Revisar reto 2</button>
+    </div>
+  </section>
+
+  <!-- R3 CRAAP mcq -->
+  <section class="part">
+    <div class="part-head"><div><div class="pn craap">Reto 3 · CRAAP</div><h2>¿Qué criterio falla en esta fuente?</h2></div><span class="badge" id="b3">0 pts</span></div>
+    <div class="part-body">
+      <p class="intro">Cada fuente tiene un problema. Identifica qué criterio CRAAP es el que NO cumple.</p>
+      <div id="mc3"></div>
+    </div>
+  </section>
+
+  <!-- R4 confiable/dudosa -->
+  <section class="part">
+    <div class="part-head"><div><div class="pn craap">Reto 4 · CRAAP</div><h2>¿Fuente confiable o dudosa?</h2></div><span class="badge" id="b4">0 pts</span></div>
+    <div class="part-body">
+      <p class="intro">Aplica CRAAP rápido y decide si confiarías en cada fuente para una tarea.</p>
+      <div id="bin4"></div>
+    </div>
+  </section>
+
+  <!-- R5 CC se puede -->
+  <section class="part">
+    <div class="part-head"><div><div class="pn cc">Reto 5 · Creative Commons</div><h2>¿Se puede o no se puede?</h2></div><span class="badge" id="b5">0 pts</span></div>
+    <div class="part-body">
+      <p class="intro">Decide si cada uso está permitido según la licencia indicada. Fíjate bien en la licencia exacta.</p>
+      <div id="bin5"></div>
+    </div>
+  </section>
+
+  <!-- R6 CC iconos -->
+  <section class="part">
+    <div class="part-head"><div><div class="pn cc">Reto 6 · Creative Commons</div><h2>Identifica la licencia por sus íconos</h2></div><span class="badge" id="b6">0 pts</span></div>
+    <div class="part-body">
+      <p class="intro">Cada fila muestra los íconos de una licencia Creative Commons. Identifica cuál es.</p>
+      <div id="ic6"></div>
+      <button class="check-btn" data-check="6">Revisar reto 6</button>
+    </div>
+  </section>
+
+  <!-- R7 TASL -->
+  <section class="part">
+    <div class="part-head"><div><div class="pn cc">Reto 7 · Creative Commons</div><h2>Arma el crédito con la fórmula TASL</h2></div><span class="badge" id="b7">0 pts</span></div>
+    <div class="part-body">
+      <div class="tasl-card">
+        <span class="lbl">Fórmula TASL</span><br>
+        <b>T</b>ítulo · <b>A</b>utor · <b>S</b>itio o fuente · <b>L</b>icencia.
+        <span class="formula">"Título", de Autor, en Sitio, bajo licencia CC XX.</span>
+      </div>
+      <p class="intro">Escribe la línea de crédito completa para cada imagen. Se revisa cada elemento por separado.</p>
+      <div id="tasl7"></div>
+    </div>
+  </section>
+
+  <div class="final" id="final">
+    <h3>¡Quiz completado!</h3>
+    <div class="grade" id="finalGrade"></div>
+    <div class="big" id="finalScore"></div>
+    <p id="finalMsg"></p>
+    <div class="rank" id="finalRank"></div>
+    <div class="final-actions">
+      <button class="check-btn" id="btnSend">📤 Enviar al maestro</button>
+      <button class="btn-ghost" id="btnDownload">⬇ Descargar comprobante</button>
+    </div>
+    <div class="send-fb" id="sendFb"></div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+<div id="resetModal">
+  <div class="modal-card">
+    <h3>¿Reiniciar el quiz?</h3>
+    <p>Se borrarán todas las respuestas guardadas en esta computadora. Úsalo para dejarlo listo para otro alumno o grupo.</p>
+    <div class="modal-actions">
+      <button id="cancelReset">Cancelar</button>
+      <button class="danger" id="confirmReset">Sí, borrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   ⚙️ CONFIGURACIÓN DE LA MAESTRA
+   Pega aquí, entre las comillas, el enlace (URL) que te da
+   Google Apps Script al publicar tu hoja (el que termina en /exec).
+   Es el MISMO tipo de enlace que usaste en la página de actividades;
+   puedes reutilizar esa hoja o crear una nueva.
+   Mientras esté vacío, el botón avisará que el envío no está listo.
+   ========================================================= */
+const URL_MAESTRA = "https://script.google.com/macros/s/AKfycbwALbggADENl6KTLxFOJmMc1RCALrZ1Wq6IU1-MyHNMU44aYb8asq2pFEwvz9Xpx5qSAQ/exec";
+/* ========================================================= */
+
+/* ===================== DATOS ===================== */
+
+/* R1 · CRAAP: criterio → pregunta que responde */
+const CRAAP = [
+  { sym:"C — Actualidad", def:"¿Cuándo se publicó? ¿La información sigue vigente?" },
+  { sym:"R — Relevancia", def:"¿Responde a lo que busco y es del nivel adecuado?" },
+  { sym:"A — Autoridad", def:"¿Quién es el autor? ¿Tiene experiencia o respaldo?" },
+  { sym:"A — Exactitud", def:"¿Hay evidencia? ¿Coincide con otras fuentes confiables?" },
+  { sym:"P — Propósito", def:"¿Por qué existe: informar, vender, convencer, opinar?" }
+];
+
+/* R2 · CC símbolos */
+const CC = [
+  { sym:"BY", def:"Debes dar crédito al autor." },
+  { sym:"SA (Share-Alike)", def:"Si la modificas, compártela con la misma licencia." },
+  { sym:"NC (Non-Commercial)", def:"No puedes usarla con fines comerciales." },
+  { sym:"ND (No Derivatives)", def:"Puedes usarla, pero no modificarla." },
+  { sym:"CC0", def:"Uso libre; ni siquiera hace falta dar crédito." },
+  { sym:"© Reservados", def:"No puedes usarla sin pedir permiso al autor." }
+];
+
+/* R3 · ¿qué criterio CRAAP falla? (mcq, opciones = los 5 criterios) */
+const CRAAP_OPTS = ["Actualidad","Relevancia","Autoridad","Exactitud","Propósito"];
+const MC3 = [
+  { q:'Un artículo sobre inteligencia artificial <b>sin fecha visible</b>, que al revisar resulta tener 8 años de antigüedad.', correct:0,
+    fb:'Falla la Actualidad: en un tema que cambia rápido, 8 años es demasiado y además no muestra la fecha.' },
+  { q:'Una página web <b>sin autor identificado</b> ni institución que la respalde.', correct:2,
+    fb:'Falla la Autoridad: no se puede saber quién la escribió ni si tiene experiencia en el tema.' },
+  { q:'Un sitio <b>lleno de anuncios</b> que, mientras "informa", claramente busca venderte un producto.', correct:4,
+    fb:'Falla el Propósito: su objetivo real es vender, no informar de forma objetiva.' },
+  { q:'Una afirmación <b>sin ninguna fuente ni evidencia</b>, que además contradice a fuentes confiables.', correct:3,
+    fb:'Falla la Exactitud: no hay evidencia que la respalde y no coincide con otras fuentes.' },
+  { q:'Un artículo académico <b>muy técnico y avanzado</b> para responder una duda escolar básica; no se ajusta a lo que necesitas.', correct:1,
+    fb:'Falla la Relevancia: aunque sea confiable, no está al nivel ni responde a lo que buscas.' }
+];
+
+/* R4 · confiable / dudosa (binary: Confiable=true) */
+const BIN4 = [
+  { s:'Un reporte de una <b>universidad reconocida</b>, con autor identificado y fecha reciente.', ok:true,
+    fb:'Confiable: tiene autoridad (institución y autor), actualidad y suele citar evidencia.' },
+  { s:'Una publicación viral <b>sin autor, sin fecha</b> y con un titular alarmista en mayúsculas.', ok:false,
+    fb:'Dudosa: falla autoridad, actualidad y su propósito parece ser llamar la atención, no informar.' },
+  { s:'Una nota de un <b>medio de noticias establecido</b> que cita fuentes oficiales.', ok:true,
+    fb:'Confiable: tiene autoridad y exactitud (cita fuentes verificables).' },
+  { s:'Un blog anónimo que promete <b>"la verdad que los médicos te ocultan"</b>.', ok:false,
+    fb:'Dudosa: sin autoridad, con un propósito sensacionalista y sin evidencia.' },
+  { s:'Un artículo con <b>autor experto, referencias citadas y fecha reciente</b>.', ok:true,
+    fb:'Confiable: cumple autoridad, exactitud y actualidad.' },
+  { s:'Una cuenta de redes que pide <b>compartir "antes de que lo borren"</b>, sin ninguna fuente.', ok:false,
+    fb:'Dudosa: la urgencia para compartir y la falta de fuente son señales clásicas de desinformación.' }
+];
+
+/* R5 · CC se puede / no (binary: Se puede=true) */
+const BIN5 = [
+  { s:'Usas una imagen <span class="mono">CC BY</span> en tu folleto y escribes el nombre del autor.', ok:true,
+    fb:'Se puede. CC BY permite usarla siempre que des crédito.' },
+  { s:'Modificas una imagen <span class="mono">CC BY-ND</span> y la subes cambiada.', ok:false,
+    fb:'No se puede. ND significa "sin derivadas": no puedes modificarla.' },
+  { s:'Usas una foto <span class="mono">CC0</span> sin dar crédito.', ok:true,
+    fb:'Se puede. CC0 es dominio público: ni siquiera exige crédito.' },
+  { s:'Vendes playeras con una imagen <span class="mono">CC BY-NC</span>.', ok:false,
+    fb:'No se puede. NC prohíbe el uso comercial.' },
+  { s:'Usas una imagen <span class="mono">CC BY-SA</span>, la modificas y la compartes con la misma licencia CC BY-SA.', ok:true,
+    fb:'Se puede. SA pide exactamente eso: compartir tu versión con la misma licencia.' },
+  { s:'Usas una imagen marcada <span class="mono">© Todos los derechos reservados</span> sin pedir permiso.', ok:false,
+    fb:'No se puede. Necesitas permiso explícito del autor.' }
+];
+
+/* R6 · identifica por íconos */
+function ccBadge(kind){
+  const circle='<circle cx="21" cy="21" r="19" fill="#141d2b" stroke="#f2ede1" stroke-width="2"/>';
+  let sym="";
+  if(kind==="cc") sym='<text x="21" y="27" text-anchor="middle" font-family="monospace" font-size="15" font-weight="700" fill="#f2ede1">CC</text>';
+  else if(kind==="by") sym='<circle cx="21" cy="15" r="4.5" fill="#f2ede1"/><path d="M12.5 31 C12.5 24 16 22 21 22 C26 22 29.5 24 29.5 31 Z" fill="#f2ede1"/>';
+  else if(kind==="nc") sym='<text x="21" y="27" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#f2ede1">$</text><line x1="10" y1="31" x2="32" y2="11" stroke="#f2ede1" stroke-width="2.4"/>';
+  else if(kind==="sa") sym='<path d="M21 9 A12 12 0 1 1 10.5 15" fill="none" stroke="#f2ede1" stroke-width="2.6"/><polygon points="21,4 16,10 26,10" fill="#f2ede1"/>';
+  else if(kind==="nd") sym='<line x1="12" y1="17" x2="30" y2="17" stroke="#f2ede1" stroke-width="2.6"/><line x1="12" y1="25" x2="30" y2="25" stroke="#f2ede1" stroke-width="2.6"/>';
+  else if(kind==="zero") sym='<text x="21" y="28" text-anchor="middle" font-family="monospace" font-size="17" font-weight="700" fill="#f2ede1">0</text>';
+  return '<svg class="cc-badge" viewBox="0 0 42 42">'+circle+sym+'</svg>';
+}
+const IC_OPTS = ["CC0","CC BY","CC BY-NC","CC BY-SA","CC BY-ND","CC BY-NC-SA","CC BY-NC-ND"];
+const ICONS = [
+  { badges:["cc","by"], answer:"CC BY" },
+  { badges:["cc","by","nc","sa"], answer:"CC BY-NC-SA" },
+  { badges:["cc","by","nd"], answer:"CC BY-ND" },
+  { badges:["zero"], answer:"CC0" }
+];
+
+/* R7 · TASL */
+const TASL = [
+  { t:"Biblioteca abierta", a:"Sofía Lara", s:"Unsplash", l:"CC BY",
+    lt:"biblioteca abierta", la:"sofia lara", ls:"unsplash", ll:/cc\s*by(?![\s-]*(nc|sa|nd))/ },
+  { t:"Datos y verdad", a:"Hugo Peña", s:"Pexels", l:"CC BY-NC",
+    lt:"datos y verdad", la:"hugo pena", ls:"pexels", ll:/cc\s*by[\s-]*nc(?![\s-]*(sa|nd))/ }
+];
+
+/* ===================== helpers ===================== */
+function esc(s){ return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function save(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function load(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } }
+function norm(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[“”"']/g,"").replace(/\s+/g," ").trim(); }
+
+["idApellido","idNombre","idGrupo"].forEach(id=>{ const el=document.getElementById(id); el.value=load("qz_"+id); el.addEventListener("input",()=>save("qz_"+id,el.value)); });
+
+/* ===== match genérico ===== */
+function renderMatch(contId, arr, keyp, symClass){
+  const cont=document.getElementById(contId);
+  cont.innerHTML=arr.map((m,i)=>`
+    <div class="row">
+      <div class="sym ${symClass||''}">${esc(m.sym)}</div>
+      <select data-m="${i}"><option value="">Elige...</option>
+        ${arr.map((d,j)=>`<option value="${j}">${esc(d.def)}</option>`).join("")}
+      </select>
+      <div class="res pending" id="${keyp}res-${i}"></div>
+    </div>`).join("");
+  arr.forEach((m,i)=>{ const sel=cont.querySelector(`select[data-m="${i}"]`); sel.value=load("qz_"+keyp+i); sel.addEventListener("change",()=>save("qz_"+keyp+i,sel.value)); });
+  if(load("qz_done_"+keyp)==="1") lockMatch(contId,arr,keyp);
+}
+function lockMatch(contId, arr, keyp){
+  arr.forEach((m,i)=>{
+    const sel=document.querySelector(`#${contId} select[data-m="${i}"]`); const res=document.getElementById(keyp+"res-"+i);
+    if(!sel) return; sel.disabled=true;
+    if(sel.value===""){ res.className="res pending"; res.textContent="falta"; return; }
+    const good=parseInt(sel.value)===i; res.className="res "+(good?"ok":"no"); res.textContent=good?"✓":"✗";
+  });
+}
+function scoreMatch(arr, keyp){ let s=0; if(load("qz_done_"+keyp)==="1") arr.forEach((m,i)=>{ if(parseInt(load("qz_"+keyp+i))===i) s++; }); return s; }
+
+/* ===== mcq genérico (una respuesta) ===== */
+function renderMCQ(contId, arr, keyp, opts){
+  const cont=document.getElementById(contId);
+  cont.innerHTML=arr.map((c,i)=>`
+    <div class="quiz">
+      <div class="scn">${c.q}</div>
+      <div class="quiz-actions" style="flex-direction:column;">
+        ${(opts||c.opts).map((o,j)=>`<button class="qbtn wide" data-k="${keyp}" data-i="${i}" data-val="${j}">${esc(o)}</button>`).join("")}
+      </div>
+      <div class="fb" id="${keyp}fb-${i}"><b>Explicación:</b> ${c.fb}</div>
+    </div>`).join("");
+  arr.forEach((c,i)=>{ const v=load("qz_"+keyp+i); if(v!=="") lockMCQ(contId,keyp,i,v,String(c.correct)); });
+}
+function lockMCQ(contId, keyp, i, chosen, correctVal){
+  const card=document.querySelectorAll(`#${contId} .quiz`)[i]; if(!card) return;
+  card.querySelectorAll(".qbtn").forEach(b=>{ b.disabled=true; if(b.dataset.val===correctVal) b.classList.add("correct"); else if(b.dataset.val===chosen) b.classList.add("incorrect"); });
+  document.getElementById(keyp+"fb-"+i).classList.add("show");
+}
+function scoreMCQ(arr, keyp){ let s=0,d=0; arr.forEach((c,i)=>{ const v=load("qz_"+keyp+i); if(v!==""){ d++; if(parseInt(v)===c.correct) s++; } }); return {got:s,done:d===arr.length}; }
+
+/* ===== binary genérico ===== */
+function renderBIN(contId, arr, keyp, labels){
+  const cont=document.getElementById(contId);
+  cont.innerHTML=arr.map((c,i)=>`
+    <div class="quiz">
+      <div class="scn">${c.s}</div>
+      <div class="quiz-actions">
+        <button class="qbtn" data-k="${keyp}" data-i="${i}" data-val="1">${esc(labels[0])}</button>
+        <button class="qbtn" data-k="${keyp}" data-i="${i}" data-val="0">${esc(labels[1])}</button>
+      </div>
+      <div class="fb" id="${keyp}fb-${i}"><b>Explicación:</b> ${c.fb}</div>
+    </div>`).join("");
+  arr.forEach((c,i)=>{ const v=load("qz_"+keyp+i); if(v!=="") lockMCQ(contId,keyp,i,v,c.ok?"1":"0"); });
+}
+function scoreBIN(arr, keyp){ let s=0,d=0; arr.forEach((c,i)=>{ const v=load("qz_"+keyp+i); if(v!==""){ d++; if(v===(c.ok?"1":"0")) s++; } }); return {got:s,done:d===arr.length}; }
+
+/* ===== íconos ===== */
+function renderIcons(){
+  const cont=document.getElementById("ic6");
+  cont.innerHTML=ICONS.map((o,i)=>`
+    <div class="ic-row">
+      <div class="ic-badges">${o.badges.map(b=>ccBadge(b)).join("")}</div>
+      <select data-ic="${i}"><option value="">¿Qué licencia es?</option>
+        ${IC_OPTS.map(op=>`<option value="${esc(op)}">${esc(op)}</option>`).join("")}
+      </select>
+      <div class="res pending" id="icres-${i}"></div>
+    </div>`).join("");
+  ICONS.forEach((o,i)=>{ const sel=cont.querySelector(`select[data-ic="${i}"]`); sel.value=load("qz_ic"+i); sel.addEventListener("change",()=>save("qz_ic"+i,sel.value)); });
+  if(load("qz_done_ic")==="1") lockIcons();
+}
+function lockIcons(){
+  ICONS.forEach((o,i)=>{
+    const sel=document.querySelector(`#ic6 select[data-ic="${i}"]`); const res=document.getElementById("icres-"+i);
+    if(!sel) return; sel.disabled=true;
+    if(sel.value===""){ res.className="res pending"; res.textContent="falta"; return; }
+    const good=sel.value===o.answer; res.className="res "+(good?"ok":"no"); res.textContent=good?"✓":"✗";
+  });
+}
+function scoreIcons(){ let s=0; if(load("qz_done_ic")==="1") ICONS.forEach((o,i)=>{ if(load("qz_ic"+i)===o.answer) s++; }); return s; }
+
+/* ===== TASL ===== */
+function renderTasl(){
+  const cont=document.getElementById("tasl7");
+  cont.innerHTML=TASL.map((d,i)=>`
+    <div class="data-card">Imagen ${i+1} → Título: <b>“${esc(d.t)}”</b> · Autor: <b>${esc(d.a)}</b> · Sitio: <b>${esc(d.s)}</b> · Licencia: <b>${esc(d.l)}</b></div>
+    <div class="field"><input type="text" data-tasl="${i}" placeholder='Escribe el crédito completo de la imagen ${i+1}...'></div>
+    <button class="check-btn" data-taslcheck="${i}" style="margin-bottom:16px;">Revisar imagen ${i+1}</button>
+    <div class="subfb" id="taslfb-${i}"></div>`).join("");
+  TASL.forEach((d,i)=>{ const inp=cont.querySelector(`input[data-tasl="${i}"]`); inp.value=load("qz_tasl"+i); inp.addEventListener("input",()=>save("qz_tasl"+i,inp.value)); if(load("qz_tasldone"+i)==="1") showTaslFb(i); });
+}
+function taslChecks(i){
+  const d=TASL[i]; const val=norm(document.querySelector(`input[data-tasl="${i}"]`).value);
+  return [ {k:"Título",ok:val.includes(d.lt)},{k:"Autor",ok:val.includes(d.la)},{k:"Sitio",ok:val.includes(d.ls)},{k:"Licencia",ok:d.ll.test(val)} ];
+}
+function showTaslFb(i){
+  const d=TASL[i]; const checks=taslChecks(i); const fb=document.getElementById("taslfb-"+i);
+  fb.innerHTML=checks.map(c=>`<div class="${c.ok?'hit':'miss'}">${c.ok?'✓':'✗'} ${c.k}</div>`).join("")
+    +`<div class="model"><b>Modelo:</b> “${esc(d.t)}”, de ${esc(d.a)}, en ${esc(d.s)}, bajo licencia ${esc(d.l)}.</div>`;
+  fb.classList.add("show");
+}
+
+/* ===================== CLICKS ===================== */
+document.addEventListener("click",e=>{
+  const chk=e.target.closest("[data-check]");
+  if(chk){
+    const n=chk.dataset.check;
+    if(n==="1"){ save("qz_done_m1","1"); lockMatch("m1",CRAAP,"m1"); }
+    if(n==="2"){ save("qz_done_m2","1"); lockMatch("m2",CC,"m2"); }
+    if(n==="6"){ save("qz_done_ic","1"); lockIcons(); }
+    updateScore(); return;
+  }
+  const qb=e.target.closest(".qbtn");
+  if(qb && !qb.disabled){
+    const keyp=qb.dataset.k, i=+qb.dataset.i, val=qb.dataset.val;
+    save("qz_"+keyp+i,val);
+    let contId, correctVal;
+    if(keyp==="mc3"){ contId="mc3"; correctVal=String(MC3[i].correct); }
+    else if(keyp==="bin4"){ contId="bin4"; correctVal=BIN4[i].ok?"1":"0"; }
+    else if(keyp==="bin5"){ contId="bin5"; correctVal=BIN5[i].ok?"1":"0"; }
+    lockMCQ(contId,keyp,i,val,correctVal);
+    updateScore(); return;
+  }
+  const tc=e.target.closest("[data-taslcheck]");
+  if(tc){ const i=+tc.dataset.taslcheck; save("qz_tasldone"+i,"1"); showTaslFb(i); updateScore(); return; }
+});
+
+/* ===================== SCORE ===================== */
+function computeParts(){
+  const p={};
+  p.r1={got:scoreMatch(CRAAP,"m1"),max:CRAAP.length,done:load("qz_done_m1")==="1"};
+  p.r2={got:scoreMatch(CC,"m2"),max:CC.length,done:load("qz_done_m2")==="1"};
+  const s3=scoreMCQ(MC3,"mc3"); p.r3={got:s3.got,max:MC3.length,done:s3.done};
+  const s4=scoreBIN(BIN4,"bin4"); p.r4={got:s4.got,max:BIN4.length,done:s4.done};
+  const s5=scoreBIN(BIN5,"bin5"); p.r5={got:s5.got,max:BIN5.length,done:s5.done};
+  p.r6={got:scoreIcons(),max:ICONS.length,done:load("qz_done_ic")==="1"};
+  let s7=0,d7=0; TASL.forEach((d,i)=>{ if(load("qz_tasldone"+i)==="1"){ d7++; const inp=document.querySelector(`input[data-tasl="${i}"]`); if(inp){ if(taslChecks(i).every(x=>x.ok)) s7++; } } });
+  p.r7={got:s7,max:TASL.length,done:d7===TASL.length};
+  return p;
+}
+function updateScore(){
+  const p=computeParts();
+  const keys=["r1","r2","r3","r4","r5","r6","r7"];
+  let got=0,max=0,doneCount=0;
+  keys.forEach((k,idx)=>{
+    got+=p[k].got; max+=p[k].max;
+    const badge=document.getElementById("b"+(idx+1));
+    if(badge){ badge.textContent=p[k].got+"/"+p[k].max+" pts"; badge.classList.toggle("solved",p[k].done); }
+    if(p[k].done) doneCount++;
+  });
+  document.getElementById("scoreText").textContent=got;
+  document.getElementById("scoreTotal").textContent=max;
+  document.getElementById("progressbar").innerHTML=keys.map(k=>`<div class="pstep ${p[k].done?'done':''}"></div>`).join("");
+  if(doneCount===keys.length){
+    const fin=document.getElementById("final"); const pct=got/max; const cal=pct*10;
+    document.getElementById("finalGrade").innerHTML="Calificación: "+cal.toFixed(1)+" / 10 <span>("+Math.round(pct*100)+"%)</span>";
+    document.getElementById("finalScore").textContent=got+" / "+max+" puntos";
+    document.getElementById("finalMsg").textContent = pct===1 ? "¡Impecable! Dominas Creative Commons y el método CRAAP."
+      : pct>=0.85 ? "¡Excelente! Solo se te escaparon detalles finos."
+      : pct>=0.6 ? "Buen trabajo. Repasa los retos que fallaste." : "Vas empezando. Revisa las explicaciones y vuelve a intentarlo.";
+    document.getElementById("finalRank").textContent = pct===1 ? "◆ Rango: Experto" : pct>=0.85 ? "◆ Rango: Avanzado" : pct>=0.6 ? "◆ Rango: Intermedio" : "◆ Rango: Aprendiz";
+    fin.classList.add("show");
+  }
+}
+
+/* ===================== ENVIAR / DESCARGAR ===================== */
+function stripTags(s){ return (s||"").replace(/<[^>]*>/g,"").replace(/\s+/g," ").trim(); }
+function mk(v){ return v?"✓":"✗"; }
+
+function buildDetalle(){
+  const L=[];
+  L.push("— CRAAP: ¿qué evalúa cada letra? —");
+  CRAAP.forEach((m,i)=>{ const v=load("qz_m1"+i); const pick=v!==""?CRAAP[parseInt(v)].def:"(sin responder)"; L.push(`${m.sym}: ${pick} ${v!==""?mk(parseInt(v)===i):""}`); });
+  L.push("");
+  L.push("— Símbolos Creative Commons —");
+  CC.forEach((m,i)=>{ const v=load("qz_m2"+i); const pick=v!==""?CC[parseInt(v)].def:"(sin responder)"; L.push(`${m.sym}: ${pick} ${v!==""?mk(parseInt(v)===i):""}`); });
+  L.push("");
+  L.push("— ¿Qué criterio CRAAP falla? —");
+  MC3.forEach((c,i)=>{ const v=load("qz_mc3"+i); const pick=v!==""?CRAAP_OPTS[parseInt(v)]:"(sin responder)"; L.push(`${stripTags(c.q).slice(0,70)}… → ${pick} ${v!==""?mk(parseInt(v)===c.correct):""}`); });
+  L.push("");
+  L.push("— ¿Fuente confiable o dudosa? —");
+  BIN4.forEach((c,i)=>{ const v=load("qz_bin4"+i); const pick=v===""?"(sin responder)":(v==="1"?"Confiable":"Dudosa"); L.push(`${stripTags(c.s).slice(0,70)}… → ${pick} ${v!==""?mk(v===(c.ok?"1":"0")):""}`); });
+  L.push("");
+  L.push("— Creative Commons: ¿se puede o no? —");
+  BIN5.forEach((c,i)=>{ const v=load("qz_bin5"+i); const pick=v===""?"(sin responder)":(v==="1"?"Se puede":"No se puede"); L.push(`${stripTags(c.s).slice(0,70)}… → ${pick} ${v!==""?mk(v===(c.ok?"1":"0")):""}`); });
+  L.push("");
+  L.push("— Identifica la licencia por íconos —");
+  ICONS.forEach((o,i)=>{ const v=load("qz_ic"+i); L.push(`Íconos [${o.badges.join("+")}] → ${v||"(sin responder)"} ${v!==""?mk(v===o.answer):""}`); });
+  L.push("");
+  L.push("— Créditos TASL —");
+  TASL.forEach((d,i)=>{ L.push(`Imagen ${i+1}: ${load("qz_tasl"+i)||"(sin responder)"}`); });
+  return L.join("\n");
+}
+
+function buildDataObject(){
+  const p=computeParts();
+  const keys=["r1","r2","r3","r4","r5","r6","r7"];
+  let got=0,max=0; keys.forEach(k=>{ got+=p[k].got; max+=p[k].max; });
+  const pct=max?got/max:0;
+  return {
+    Apellido: load("qz_idApellido")||"(sin apellido)",
+    Nombre: load("qz_idNombre")||"(sin nombre)",
+    Grupo: load("qz_idGrupo")||"(sin grupo)",
+    Enviado: new Date().toLocaleString("es-MX"),
+    Calificacion: (pct*10).toFixed(1),
+    Porcentaje: Math.round(pct*100)+"%",
+    Puntos: got+"/"+max,
+    "R1 CRAAP (criterios)": p.r1.got+"/"+p.r1.max,
+    "R2 Simbolos CC": p.r2.got+"/"+p.r2.max,
+    "R3 Criterio que falla": p.r3.got+"/"+p.r3.max,
+    "R4 Confiable o dudosa": p.r4.got+"/"+p.r4.max,
+    "R5 CC se puede o no": p.r5.got+"/"+p.r5.max,
+    "R6 Iconos CC": p.r6.got+"/"+p.r6.max,
+    "R7 Credito TASL": p.r7.got+"/"+p.r7.max,
+    "Credito imagen 1": load("qz_tasl0"),
+    "Credito imagen 2": load("qz_tasl1"),
+    "Detalle de respuestas": buildDetalle()
+  };
+}
+
+document.getElementById("btnSend").addEventListener("click", async ()=>{
+  const apellido=load("qz_idApellido").trim();
+  const nombre=load("qz_idNombre").trim();
+  const fb=document.getElementById("sendFb");
+  if(!apellido || !nombre){ fb.className="send-fb show no"; fb.textContent="Escribe tu apellido y tu nombre arriba antes de enviar."; document.getElementById("idApellido").focus(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(!URL_MAESTRA){ fb.className="send-fb show no"; fb.textContent="El envío no está configurado todavía. Avisa a tu maestra (puedes descargar tu comprobante)."; return; }
+  const btn=document.getElementById("btnSend"); const original=btn.textContent;
+  btn.textContent="Enviando…"; btn.disabled=true;
+  try{
+    await fetch(URL_MAESTRA, { method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(buildDataObject()) });
+    fb.className="send-fb show ok"; fb.textContent="✓ ¡Enviado! Tu calificación llegó a la maestra.";
+  }catch(err){
+    fb.className="send-fb show no"; fb.textContent="No se pudo enviar. Revisa tu conexión e intenta de nuevo, o descarga tu comprobante.";
+  }finally{ btn.textContent=original; btn.disabled=false; }
+});
+
+document.getElementById("btnDownload").addEventListener("click", ()=>{
+  const d=buildDataObject();
+  const nombre=((d.Apellido||"")+"_"+(d.Nombre||"alumno")).replace(/[^a-z0-9]/gi,"_");
+  const rows=Object.keys(d).filter(k=>k!=="Detalle de respuestas").map(k=>`<tr><td class="q">${k}</td><td>${(d[k]||"—").toString().replace(/</g,"&lt;")}</td></tr>`).join("");
+  const detalle=(d["Detalle de respuestas"]||"").replace(/</g,"&lt;");
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Comprobante — ${d.Nombre}</title>
+  <style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:760px;margin:0 auto;padding:40px 24px;color:#1a1a1a;line-height:1.5}
+  header{border-bottom:3px solid #2e7d74;padding-bottom:14px;margin-bottom:20px}h1{font-size:20px;margin:0 0 6px}
+  .cal{font-size:30px;font-weight:800;color:#2e7d74;margin:10px 0}
+  table{width:100%;border-collapse:collapse;margin-bottom:18px}td{border:1px solid #e0e0e0;padding:7px 10px;font-size:13px;vertical-align:top}
+  td.q{width:45%;color:#555;background:#f7f7f5}h2{font-size:15px;color:#2e7d74;margin:18px 0 8px}
+  pre{white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#f7f7f5;border:1px solid #e0e0e0;padding:12px;line-height:1.5}
+  @media print{body{padding:0}}</style></head><body>
+  <header><h1>Comprobante — Quiz Creative Commons y CRAAP</h1>
+  <div>${d.Apellido} ${d.Nombre} · Grupo ${d.Grupo} · ${d.Enviado}</div>
+  <div class="cal">Calificación: ${d.Calificacion} / 10 (${d.Porcentaje})</div></header>
+  <table>${rows}</table>
+  <h2>Detalle de respuestas</h2><pre>${detalle}</pre>
+  </body></html>`;
+  const blob=new Blob([html],{type:"text/html;charset=utf-8"}); const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download="Comprobante_"+nombre+".html";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  const fb=document.getElementById("sendFb"); fb.className="send-fb show ok"; fb.textContent="Comprobante descargado. Ábrelo o imprímelo como PDF.";
+});
+
+/* ===================== reset ===================== */
+const modal=document.getElementById("resetModal");
+document.getElementById("btnReset").addEventListener("click",()=>modal.classList.add("show"));
+document.getElementById("cancelReset").addEventListener("click",()=>modal.classList.remove("show"));
+modal.addEventListener("click",e=>{ if(e.target===modal) modal.classList.remove("show"); });
+document.getElementById("confirmReset").addEventListener("click",()=>{ try{ Object.keys(localStorage).filter(k=>k.startsWith("qz_")).forEach(k=>localStorage.removeItem(k)); }catch(e){} location.reload(); });
+
+/* ===================== init ===================== */
+renderMatch("m1",CRAAP,"m1","t");
+renderMatch("m2",CC,"m2");
+renderMCQ("mc3",MC3,"mc3",CRAAP_OPTS);
+renderBIN("bin4",BIN4,"bin4",["Confiable","Dudosa"]);
+renderBIN("bin5",BIN5,"bin5",["Se puede","No se puede"]);
+renderIcons();
+renderTasl();
+updateScore();
+</script>
+</body>
+</html>
